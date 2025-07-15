@@ -1,6 +1,0 @@
-Manifest-Version: 1.0
-Build-Jdk-Spec: 21
-Class-Path: zstd-jni-1.5.2-5.jar
-Main-Class: zzx.Start
-Created-By: Maven Integration for Eclipse
-
