@@ -1,0 +1,9 @@
+-cp
+I:\\Eclipse\\workspace\\BunyUtil\\target\\BunyUtil-2.jar;C:\\Users\\Administrator\\.m2\\repository\\com\\github\\luben\\zstd-jni\\1.5.2-5\\zstd-jni-1.5.2-5.jar
+--no-fallback
+-o
+I:\\Eclipse\\workspace\\BunyUtil\\target\\BunyUtil
+-H:ConfigurationFileDirectories=I:\\Eclipse\\workspace\\BunyUtil\\target\\graalvm-reachability-metadata\\a57f0f8d34e8b37be201ed4564fe6cbbdc6377f4\\com.github.luben\\zstd-jni\\1.5.2-5
+-H:+UnlockExperimentalVMOptions
+-H:IncludeResources=dataTocBackup.dat
+-H:IncludeResources=data1TocBackup.dat

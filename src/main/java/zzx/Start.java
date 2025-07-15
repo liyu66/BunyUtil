@@ -4,36 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
+import zzx.buny.BunyStruct;
 import zzx.utils.IllegalUsageException;
 
+import static zzx.Config.*;
+
 public class Start {
-	
-	public static final String USAGE =
-		    "Usage: BunyUtil.exe [option] <arguments>\n\n" +
-		    "Options:\n" +
-		    "  -e, --extract <bunyFilePath> <outputPath> [prefix]\n" +
-		    "      Extract files from the specified .buny archive to the output directory.\n" +
-		    "      If [prefix] is provided, only files whose paths start with the given prefix will be extracted.\n\n" +
-		    "  -m, --modify [modPath]\n" +
-		    "      Apply a mod to the .buny archive by replacing existing resources.\n" +
-		    "      If [modPath] is specified, only that mod will be used. Otherwise, all mods in the 'mods' directory\n" +
-		    "      will be automatically applied.\n\n" +
-		    "  -r, --reset [bunyFilePath]\n" +
-		    "      Revert all changes previously made by the --modify operation to the specified .buny archive.\n" +
-		    "      If [bunyFilePath] is omitted, both data.buny and data_1.buny will be reset.\n\n" +
-		    "  -h, --help\n" +
-		    "      Show this help message and exit.\n\n" +
-		    "Examples:\n" +
-		    "  BunyUtil.exe --extract .\\data_1.buny .\\extracted\\\n" +
-		    "  BunyUtil.exe --extract .\\data.buny .\\extracted\\ data/actors/ats\n" +
-		    "  BunyUtil.exe --modify .\\mods\\my_mod\\\n" +
-		    "  BunyUtil.exe --modify\n" +
-		    "  BunyUtil.exe --reset .\\data.buny\n" +
-		    "  BunyUtil.exe --reset\n";
-	
-	public static final String dataBunyPath = "data.buny";
-	public static final String data1BunyPath = "data_1.buny";
-	public static final String modsPath = "mods";
 	
     public static void main(String[] args) {
         try {
@@ -54,18 +30,19 @@ public class Start {
             System.exit(1);
         }
         
+        System.out.println("\nAll Done!");
         System.exit(0);
     }
     
     public static void utilMode(String option, String[] args) throws IOException {
-    	BunyDriver driver = new BunyDriver(Start::printToScreen);
+    	
 		switch (option.toLowerCase()) {
 			case "-e":
 			case "--extract":
 				if (args.length == 2) {
-					driver.extract(args[0], args[1]);
+					extract(args[0], args[1]);
 				} else if (args.length == 3) {
-					driver.extract(args[0], args[1], args[2]);
+					extract(args[0], args[1], args[2]);
 				} else {
 					throw new IllegalUsageException("Wrong number of parameters");
 				}
@@ -73,11 +50,9 @@ public class Start {
 			case "-m":
 			case "--modify":
 				if (args.length == 0) {
-					// Load all mods in the default mods folder
-					driver.modifyAll(getDataBunyPath(), getData1BunyPath(), getModsPath());
+					modify();
 				} else if (args.length == 1) {
-					// Only load the specified mod
-					driver.modify(getDataBunyPath(), getData1BunyPath(), args[0]);
+					modify(args[0]);
 				} else {
 					throw new IllegalUsageException("Wrong number of parameters");
 				}
@@ -85,10 +60,9 @@ public class Start {
 			case "-r":
 			case "--reset":
 				if (args.length == 0) {
-					driver.reset(getDataBunyPath());
-					driver.reset(getData1BunyPath());
+					reset();
 				} else if (args.length == 1) {
-					driver.reset(args[0]);
+					reset(args[0]);
 				} else {
 					throw new IllegalUsageException("Wrong number of parameters");
 				}
@@ -100,60 +74,89 @@ public class Start {
 					throw new IllegalUsageException("Wrong number of parameters");
 				}
 				break;
+			case "-s":
+			case "--split":
+				if (args.length == 2) {
+					split(args[0], args[1]);
+				} else {
+					throw new IllegalUsageException("Wrong number of parameters");
+				}
+				break;
+			case "-c":
+			case "--combine":
+				if (args.length >= 2) {
+					combine(args[0], Arrays.copyOfRange(args, 1, args.length));
+				} else {
+					throw new IllegalUsageException("Wrong number of parameters");
+				}
+				break;
 			default:
 				throw new IllegalUsageException("Unknown option: " + option);
 		}
     }
     
-    public static void resetAndModify() throws IOException {
-    	BunyDriver driver = new BunyDriver(Start::printToScreen);
-    	
-    	try (BunyStruct dataBuny = new BunyStruct(getDataBunyPath());
-    		 BunyStruct data1Buny = new BunyStruct(getData1BunyPath())) {
-    		
-    		driver.reset(dataBuny);
-        	driver.reset(data1Buny);
-        	
-        	driver.modifyAll(dataBuny, data1Buny, getModsPath());
+    public static void extract(String bunyFilePath, String outputPath) throws IOException {
+    	extract(bunyFilePath, outputPath, "");
+    }
+    
+    public static void extract(String bunyFilePath, String outputPath, String prefix) throws IOException {
+    	try (BunyStruct buny = new BunyStruct(bunyFilePath)) {
+			Driver.loadInfo(buny);
+			Driver.extract(buny, outputPath, prefix);
+		}
+    }
+    
+    // Load all mods in the default mods folder
+    public static void modify() throws IOException {
+    	try (BunyStruct dataBuny = new BunyStruct(getDefaultDataBunyPath());
+    		 BunyStruct data1Buny = new BunyStruct(getDefaultData1BunyPath())) {
+    		Driver.loadInfo(dataBuny);
+    		Driver.loadInfo(data1Buny);
+    		Driver.modify(dataBuny, data1Buny, getDefaultModsPath());
     	}
     }
     
-    public static String getDataBunyPath() {
-        return resolvePath(dataBunyPath);
-    }
-
-    public static String getData1BunyPath() {
-        return resolvePath(data1BunyPath);
-    }
-
-    public static String getModsPath() {
-        return resolvePath(modsPath);
-    }
-
-    private static String resolvePath(String primaryPath) {
-        File primary = new File(primaryPath);
-        if (primary.exists()) {
-            return primary.getPath();
-        }
-
-        File fallback = new File(".." + File.separator + primaryPath);
-        if (fallback.exists()) {
-            return fallback.getPath();
-        }
-
-        throw new IllegalUsageException("Missing file: " + primaryPath + 
-        		 	". Please run the program from the game root or a subdirectory.");
+    // Only load the specified mod
+    public static void modify(String modPath) throws IOException {
+    	try (BunyStruct dataBuny = new BunyStruct(getDefaultDataBunyPath());
+       		 BunyStruct data1Buny = new BunyStruct(getDefaultData1BunyPath())) {
+    		Driver.loadInfo(dataBuny);
+    		Driver.loadInfo(data1Buny);
+       		Driver.modify(dataBuny, data1Buny, new File(modPath));
+       	}
     }
     
-    public static void writeToLogFile(String info) {
-    	// ...To be implemented, uhhhh...
+    public static void reset() throws IOException {
+    	reset(getDefaultDataBunyPath());
+    	reset(getDefaultData1BunyPath());
+    }
+
+	public static void reset(String bunyFilePath) throws IOException {
+		try (BunyStruct buny = new BunyStruct(bunyFilePath)) {
+			Driver.loadInfo(buny);
+			Driver.reset(buny);
+		}
+	}
+
+	public static void resetAndModify() throws IOException {
+		try (BunyStruct dataBuny = new BunyStruct(getDefaultDataBunyPath());
+			 BunyStruct data1Buny = new BunyStruct(getDefaultData1BunyPath())) {
+
+			Driver.loadInfo(dataBuny);
+			Driver.loadInfo(data1Buny);
+
+			Driver.reset(dataBuny);
+			Driver.reset(data1Buny);
+
+			Driver.modify(dataBuny, data1Buny, getDefaultModsPath());
+		}
+	}
+    
+    public static void split(String fsbFile, String outputPath) throws IOException {
+    	Driver.split(fsbFile, outputPath);
     }
     
-    public static void printToScreen(String info) {
-    	System.out.print(info);
-    }
-    
-    public static void printNothing(String info) {
-    	return;
+    public static void combine(String outputFsbFile, String... inputFsbFiles) throws IOException {
+    	Driver.combine(outputFsbFile, inputFsbFiles);
     }
 }

@@ -4,38 +4,46 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>zzx</groupId>
 	<artifactId>BunyUtil</artifactId>
-	<version>1</version>
+	<version>2</version>
 	
 	<properties>
 		<native.maven.plugin.version>0.10.1</native.maven.plugin.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
-	 <build>
-     <plugins>
-         <plugin>
-             <groupId>org.apache.maven.plugins</groupId>
-             <artifactId>maven-compiler-plugin</artifactId>
-             <version>3.12.1</version>
-             <configuration>
-                 <fork>true</fork>
-             </configuration>
-         </plugin>
-         <plugin>
-             <groupId>org.apache.maven.plugins</groupId>
-             <artifactId>maven-jar-plugin</artifactId>
-             <version>3.3.0</version>
-             <configuration>
-                 <archive>
-                     <manifest>
-                         <mainClass>zzx.Start</mainClass>
-                         <addClasspath>true</addClasspath>
-                     </manifest>
-                 </archive>
-             </configuration>
-         </plugin>
-     </plugins>
- </build>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.12.1</version>
+				<configuration>
+					<fork>true</fork>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.3.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>zzx.Start</mainClass>
+							<addClasspath>true</addClasspath>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M9</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 
 	<profiles>
@@ -57,7 +65,7 @@
 								<phase>package</phase>
 								<configuration>
 									<buildArgs>
-										<!-- 包含 dat 文件 -->
+										<!-- contain .dat file -->
 										<buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
           								<buildArg>-H:IncludeResources=dataTocBackup.dat</buildArg>
           								<buildArg>-H:IncludeResources=data1TocBackup.dat</buildArg>
